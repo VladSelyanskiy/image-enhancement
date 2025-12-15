@@ -1,0 +1,20 @@
+# Auto normalize
+* text=auto
+*.txt text eol=lf
+# Markdown
+*.md        text eol=lf
+# Jupyter notebook
+*.ipynb     text eol=lf
+# Binary files
+*.bin       binary
+*.p         binary
+*.pkl       binary
+*.pickle    binary
+*.pyc       binary
+# Extra binary
+*.docx      binary
+*.odt       binary
+*.pdf       binary
+*.pptx      binary
+*.xlsx      binary
+*.zip       binary
