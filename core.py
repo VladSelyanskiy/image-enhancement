@@ -7,23 +7,19 @@ class ImageHandler:
     def __init__(
         self,
         path: str,
-        resolution,
-        quality,
+        height,
+        weight,
         reduction_common,
         reduction_binary,
-        show_grid,
-        show_rulers,
-        fullscreen,
         opening,
+        global_equ,
     ):
-        self.resolution = resolution
-        self.quality = quality
+        self.height = height
+        self.weight = weight
         self.reduction_common = reduction_common
         self.reduction_binary = reduction_binary
-        self.show_grid = show_grid
-        self.show_rulers = show_rulers
-        self.fullscreen = fullscreen
         self.opening = opening
+        self.global_equ = global_equ
 
         self.image_matrix: MatLike | None = cv2.imread(path)
 
@@ -115,7 +111,7 @@ class ImageHandler:
 
         return binary_image
 
-    def apply_clahe(
+    def applyClahe(
         self,
         clip_limit: float | int,
         grid_size: tuple[int, int],
@@ -159,7 +155,12 @@ class ImageHandler:
 
     def makeEqualization(self, show: bool = True) -> MatLike:
         image = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
-        equalized_image = cv2.equalizeHist(image)
+
+        if self.global_equ:
+            equalized_image = cv2.equalizeHist(image)
+        else:
+            clahe = cv2.createCLAHE()
+            equalized_image = clahe.apply(image)
 
         if show:
             cv2.imshow("equalized_image", equalized_image)
