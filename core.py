@@ -13,6 +13,7 @@ class ImageHandler:
         reduction_binary,
         opening,
         global_equ,
+        contrast,
     ):
         self.height = height
         self.weight = weight
@@ -20,6 +21,7 @@ class ImageHandler:
         self.reduction_binary = reduction_binary
         self.opening = opening
         self.global_equ = global_equ
+        self.contrast = contrast
 
         self.image_matrix: MatLike | None = cv2.imread(path)
 
@@ -113,15 +115,12 @@ class ImageHandler:
 
     def applyClahe(
         self,
-        clip_limit: float | int,
-        grid_size: tuple[int, int],
         show: bool = True,
     ) -> MatLike:
         """
         Применяет CLAHE (Contrast Limited Adaptive Histogram Equalization) к изображению.
 
         Параметры:
-        - image: входное изображение
         - clip_limit: порог ограничения контраста (больше значение = больше контраст)
         - grid_size: размер сетки для адаптивного выравнивания (x, y)
         """
@@ -129,7 +128,7 @@ class ImageHandler:
         image = self.image
 
         # Создаем объект CLAHE с заданными параметрами
-        clahe = cv2.createCLAHE(clipLimit=clip_limit, tileGridSize=grid_size)
+        clahe = cv2.createCLAHE(clipLimit=self.contrast)
 
         # LAB лучше сохраняет цветовую информацию при изменении яркости
         lab = cv2.cvtColor(image, cv2.COLOR_BGR2LAB)

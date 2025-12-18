@@ -65,6 +65,7 @@ class ImageTab(QWidget):
         self.choice.addItem("Remove noise")
         self.choice.addItem("Remove noise (for binary)")
         self.choice.addItem("Make Equalization")
+        self.choice.addItem("Increase image contrast")
         # Add widgets to layout
         choice_layout.addWidget(self.choice_label)
         choice_layout.addWidget(self.choice)
@@ -104,6 +105,8 @@ class ImageTab(QWidget):
             handler.delNoiseBinary()
         if index == 2:
             handler.makeEqualization()
+        if index == 3:
+            handler.applyClahe()
 
     def clear_image(self):
         self.image_label.clear()
@@ -224,6 +227,18 @@ class SettingsTab(QWidget):
         equ_group.setLayout(equ_layout)
         layout.addWidget(equ_group)
 
+        # Contrast level setting
+        contrast_group = QGroupBox("Contrast settings")
+        contrast_layout = QHBoxLayout()
+        contrast_label = QLabel("Contrast enhancement level:")
+        self.contrast_spin = QSpinBox()
+        self.contrast_spin.setRange(1, 10)
+        self.contrast_spin.setValue(3)
+        contrast_layout.addWidget(contrast_label)
+        contrast_layout.addWidget(self.contrast_spin)
+        contrast_group.setLayout(contrast_layout)
+        layout.addWidget(contrast_group)
+
         group.setLayout(layout)
         parent_layout.addWidget(group)
 
@@ -235,6 +250,7 @@ class SettingsTab(QWidget):
             "reduction_binary": self.reduction_slider2.value(),
             "opening": not (self.radio2.isChecked()),
             "global_equ": not (self.equ_radio2.isChecked()),
+            "contrast": self.contrast_spin.value(),
         }
 
 
