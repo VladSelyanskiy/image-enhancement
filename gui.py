@@ -14,17 +14,21 @@ from PyQt6.QtWidgets import (
     QGroupBox,
     QHBoxLayout,
     QComboBox,
+    QRadioButton,
 )
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QPixmap
 
 import cv2
+import numpy as np
+
 from core import ImageHandler
 
 
 class ImageTab(QWidget):
-    def __init__(self):
+    def __init__(self, settings_tab=None):
         super().__init__()
+        self.settings_tab = settings_tab  # Store reference to SettingsTab
         self.initUI()
 
     def initUI(self):
@@ -98,10 +102,38 @@ class ImageTab(QWidget):
 
         image = cv2.imread(self.file_name)
 
+        # Example: How to access settings from SettingsTab
+        if self.settings_tab:
+            # Access slider values
+            reduction_level_common = self.settings_tab.reduction_slider1.value()
+            reduction_level_binary = self.settings_tab.reduction_slider2.value()
+            
+            # Access spinbox values
+            resolution = self.settings_tab.resolution_spin.value()
+            
+            # Access slider value (quality)
+            quality = self.settings_tab.quality_slider.value()
+            
+            # Access radio button states
+            use_opening = self.settings_tab.radio1.isChecked()
+            use_closing = self.settings_tab.radio2.isChecked()
+            
+            # Access checkbox states
+            show_grid = self.settings_tab.show_grid.isChecked()
+            show_rulers = self.settings_tab.show_rulers.isChecked()
+            fullscreen = self.settings_tab.fullscreen.isChecked()
+
         if index == 0:
-            handler.makeMedianBlur(image)
+            ksize = reduction_level_common
+            handler.makeMedianBlur(image=image, ksize=ksize)
         if index == 1:
-            handler.delNoiseBinary(image)
+            ksize = reduction_level_binary
+            kernel = np.ones((ksize, ksize), np.uint8)
+            if use_closing:
+                opening = False
+            else:
+                opening = True
+            handler.delNoiseBinary(image=image, kernel=kernel, opening=opening)
 
     def clear_image(self):
         self.image_label.clear()
@@ -160,14 +192,49 @@ class SettingsTab(QWidget):
         group = QGroupBox("Processing Settings")
         layout = QVBoxLayout()
 
-        # Processing options
-        self.auto_enhance = QCheckBox("Auto Enhance")
-        self.noise_reduction = QCheckBox("Noise Reduction")
-        self.edge_detection = QCheckBox("Edge Detection")
+        # Reduction setting for commom cases
+        reduction_layout1 = QHBoxLayout()
+        reduction_label1 = QLabel("Level of reduction for common cases:")
+        self.reduction_slider1 = QSlider(Qt.Orientation.Horizontal)
+        self.reduction_slider1.setRange(1, 13)
+        self.reduction_slider1.setValue(5)
+        self.reduction_value1 = QLabel("5")
+        self.reduction_slider1.valueChanged.connect(
+            lambda v: self.reduction_value1.setText(str(v))
+        )
+        reduction_layout1.addWidget(reduction_label1)
+        reduction_layout1.addWidget(self.reduction_slider1)
+        reduction_layout1.addWidget(self.reduction_value1)
+        layout.addLayout(reduction_layout1)
 
-        layout.addWidget(self.auto_enhance)
-        layout.addWidget(self.noise_reduction)
-        layout.addWidget(self.edge_detection)
+        # Reduction setting for binary cases
+        reduction_layout2 = QHBoxLayout()
+        reduction_label2 = QLabel("Level of reduction for binary cases:")
+        self.reduction_slider2 = QSlider(Qt.Orientation.Horizontal)
+        self.reduction_slider2.setRange(1, 13)
+        self.reduction_slider2.setValue(5)
+        self.reduction_value2 = QLabel("5")
+        self.reduction_slider2.valueChanged.connect(
+            lambda v: self.reduction_value2.setText(str(v))
+        )
+        reduction_layout2.addWidget(reduction_label2)
+        reduction_layout2.addWidget(self.reduction_slider2)
+        reduction_layout2.addWidget(self.reduction_value2)
+        layout.addLayout(reduction_layout2)
+
+        # Cases for delate noise in binary images
+        # Create a group box to contain the radio buttons
+        group_box = QGroupBox("Selection options for processing binary images")
+        group_layout = QVBoxLayout()
+        
+        self.radio1 = QRadioButton("Opening\n(Good for removing noise)")
+        group_layout.addWidget(self.radio1)
+
+        self.radio2 = QRadioButton("Closing\n(Good for filling holes)")
+        group_layout.addWidget(self.radio2)
+
+        group_box.setLayout(group_layout)
+        layout.addWidget(group_box)
 
         group.setLayout(layout)
         parent_layout.addWidget(group)
@@ -199,8 +266,8 @@ class MainWindow(QMainWindow):
         self.tabs = QTabWidget()
 
         # Create tabs
-        self.image_tab = ImageTab()
         self.settings_tab = SettingsTab()
+        self.image_tab = ImageTab(settings_tab=self.settings_tab)  # Pass settings_tab reference
 
         # Add tabs to widget
         self.tabs.addTab(self.image_tab, "Image")

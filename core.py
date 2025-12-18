@@ -118,12 +118,16 @@ class ImageHandler:
         image: MatLike | None,
         kernel: MatLike = np.ones((5, 5), np.uint8),
         show: bool = True,
+        opening: bool = True,
     ) -> MatLike:
 
         if image is None:
             image = self.image
 
-        binary_image = cv2.morphologyEx(image, cv2.MORPH_OPEN, kernel)
+        if opening:
+            binary_image = cv2.morphologyEx(image, cv2.MORPH_OPEN, kernel)
+        else:
+            binary_image = cv2.morphologyEx(image, cv2.MORPH_CLOSE, kernel)
 
         if show:
             cv2.imshow("binary_image", binary_image)
