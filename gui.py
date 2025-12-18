@@ -1,4 +1,6 @@
+from typing import Dict, Any
 import sys
+
 from PyQt6.QtWidgets import (
     QApplication,
     QMainWindow,
@@ -19,14 +21,11 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QPixmap
 
-import cv2
-import numpy as np
-
 from core import ImageHandler
 
 
 class ImageTab(QWidget):
-    def __init__(self, settings_tab=None):
+    def __init__(self, settings_tab: "SettingsTab"):
         super().__init__()
         self.settings_tab = settings_tab  # Store reference to SettingsTab
         self.initUI()
@@ -66,7 +65,7 @@ class ImageTab(QWidget):
         self.choice = QComboBox()
         self.choice.addItem("Remove noise")
         self.choice.addItem("Remove noise (for binary)")
-        self.choice.addItem("Increase the contrast")
+        self.choice.addItem("Make Equalization")
         # Add widgets to layout
         choice_layout.addWidget(self.choice_label)
         choice_layout.addWidget(self.choice)
@@ -95,45 +94,17 @@ class ImageTab(QWidget):
         # Placeholder for image capture functionality
         index = self.choice.currentIndex()
 
-        handler = ImageHandler(self.file_name)
-
         if self.file_name is None:
             raise FileNotFoundError("No image loaded")
 
-        image = cv2.imread(self.file_name)
-
-        # Example: How to access settings from SettingsTab
-        if self.settings_tab:
-            # Access slider values
-            reduction_level_common = self.settings_tab.reduction_slider1.value()
-            reduction_level_binary = self.settings_tab.reduction_slider2.value()
-            
-            # Access spinbox values
-            resolution = self.settings_tab.resolution_spin.value()
-            
-            # Access slider value (quality)
-            quality = self.settings_tab.quality_slider.value()
-            
-            # Access radio button states
-            use_opening = self.settings_tab.radio1.isChecked()
-            use_closing = self.settings_tab.radio2.isChecked()
-            
-            # Access checkbox states
-            show_grid = self.settings_tab.show_grid.isChecked()
-            show_rulers = self.settings_tab.show_rulers.isChecked()
-            fullscreen = self.settings_tab.fullscreen.isChecked()
+        handler = ImageHandler(self.file_name, **self.settings_tab.toDict())
 
         if index == 0:
-            ksize = reduction_level_common
-            handler.makeMedianBlur(image=image, ksize=ksize)
+            handler.makeMedianBlur()
         if index == 1:
-            ksize = reduction_level_binary
-            kernel = np.ones((ksize, ksize), np.uint8)
-            if use_closing:
-                opening = False
-            else:
-                opening = True
-            handler.delNoiseBinary(image=image, kernel=kernel, opening=opening)
+            handler.delNoiseBinary()
+        if index == 2:
+            handler.makeEqualization()
 
     def clear_image(self):
         self.image_label.clear()
@@ -226,7 +197,7 @@ class SettingsTab(QWidget):
         # Create a group box to contain the radio buttons
         group_box = QGroupBox("Selection options for processing binary images")
         group_layout = QVBoxLayout()
-        
+
         self.radio1 = QRadioButton("Opening\n(Good for removing noise)")
         group_layout.addWidget(self.radio1)
 
@@ -255,6 +226,18 @@ class SettingsTab(QWidget):
         group.setLayout(layout)
         parent_layout.addWidget(group)
 
+    def toDict(self) -> Dict[str, Any]:
+        return {
+            "resolution": self.resolution_spin.value(),
+            "quality": self.quality_slider.value(),
+            "reduction_common": self.reduction_slider1.value(),
+            "reduction_binary": self.reduction_slider2.value(),
+            "show_grid": self.show_grid.isChecked(),
+            "show_rulers": self.show_rulers.isChecked(),
+            "fullscreen": self.fullscreen.isChecked(),
+            "opening": not (self.radio2.isChecked()),
+        }
+
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -267,7 +250,9 @@ class MainWindow(QMainWindow):
 
         # Create tabs
         self.settings_tab = SettingsTab()
-        self.image_tab = ImageTab(settings_tab=self.settings_tab)  # Pass settings_tab reference
+        self.image_tab = ImageTab(
+            settings_tab=self.settings_tab
+        )  # Pass settings_tab reference
 
         # Add tabs to widget
         self.tabs.addTab(self.image_tab, "Image")
