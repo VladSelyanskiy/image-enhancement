@@ -18,6 +18,9 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QPixmap
 
+import cv2
+from core import ImageHandler
+
 
 class ImageTab(QWidget):
     def __init__(self):
@@ -26,6 +29,7 @@ class ImageTab(QWidget):
 
     def initUI(self):
         layout = QVBoxLayout()
+        self.file_name = None
 
         # Create image display label
         self.image_label = QLabel()
@@ -36,7 +40,7 @@ class ImageTab(QWidget):
         # Create buttons
         btn_layout = QHBoxLayout()
         self.load_btn = QPushButton("Load Image")
-        self.capture_btn = QPushButton("Capture Image")
+        self.capture_btn = QPushButton("Process Image")
         self.clear_btn = QPushButton("Clear")
 
         # Connect buttons to functions
@@ -56,8 +60,6 @@ class ImageTab(QWidget):
         self.choice_label.setMinimumSize(50, 50)
         # Add cobmobox with different choices
         self.choice = QComboBox()
-        self.choice.addItem("Improve")
-        self.choice.addItem("Increase the sharpness")
         self.choice.addItem("Remove noise")
         self.choice.addItem("Remove noise (for binary)")
         self.choice.addItem("Increase the contrast")
@@ -83,12 +85,23 @@ class ImageTab(QWidget):
                     self.image_label.size(), Qt.AspectRatioMode.KeepAspectRatio
                 )
             )
+        self.file_name = file_name
 
     def capture_image(self):
         # Placeholder for image capture functionality
-        self.image_label.setText(
-            "Image capture functionality would be implemented here"
-        )
+        index = self.choice.currentIndex()
+
+        handler = ImageHandler(self.file_name)
+
+        if self.file_name is None:
+            raise FileNotFoundError("No image loaded")
+
+        image = cv2.imread(self.file_name)
+
+        if index == 0:
+            handler.makeMedianBlur(image)
+        if index == 1:
+            handler.delNoiseBinary(image)
 
     def clear_image(self):
         self.image_label.clear()

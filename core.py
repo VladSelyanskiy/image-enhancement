@@ -4,9 +4,12 @@ from cv2.typing import MatLike
 
 
 class ImageHandler:
-    def __init__(self, path: str):
+    def __init__(self, path: str | None):
 
-        self.image_matrix: MatLike | None = cv2.imread(path)
+        if path is None:
+            self.image: MatLike = np.zeros((480, 640, 3), dtype=np.uint8)
+        else:
+            self.image_matrix: MatLike | None = cv2.imread(path)
 
         if self.image_matrix is None:
             self.image: MatLike = np.zeros((480, 640, 3), dtype=np.uint8)
@@ -42,7 +45,7 @@ class ImageHandler:
         return gaussian_blurred
 
     def makeMedianBlur(
-        self, image: MatLike | None, ksize: int, show: bool = True
+        self, image: MatLike | None, ksize: int = 5, show: bool = True
     ) -> MatLike:
         if image is None:
             image = self.image
@@ -110,18 +113,18 @@ class ImageHandler:
 
         return dilated_image
 
-    def del_noise_binary(
-        self, image: MatLike | None, kernel, iterations: int = 1, show: bool = True
+    def delNoiseBinary(
+        self,
+        image: MatLike | None,
+        kernel: MatLike = np.ones((5, 5), np.uint8),
+        show: bool = True,
     ) -> MatLike:
 
         if image is None:
             image = self.image
 
-        binary_image = cv2.dilate(
-            cv2.erode(image, kernel, iterations=iterations),
-            kernel,
-            iterations=iterations,
-        )
+        binary_image = cv2.morphologyEx(image, cv2.MORPH_OPEN, kernel)
+
         if show:
             cv2.imshow("binary_image", binary_image)
             cv2.waitKey(0)
