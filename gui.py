@@ -12,7 +12,6 @@ from PyQt6.QtWidgets import (
     QFileDialog,
     QSlider,
     QSpinBox,
-    QCheckBox,
     QGroupBox,
     QHBoxLayout,
     QComboBox,
@@ -122,7 +121,6 @@ class SettingsTab(QWidget):
         # Create settings groups
         self.create_image_settings(layout)
         self.create_processing_settings(layout)
-        self.create_display_settings(layout)
 
         layout.addStretch()
         self.setLayout(layout)
@@ -131,30 +129,28 @@ class SettingsTab(QWidget):
         group = QGroupBox("Image Settings")
         layout = QVBoxLayout()
 
-        # Resolution setting
-        res_layout = QHBoxLayout()
         res_label = QLabel("Resolution:")
-        self.resolution_spin = QSpinBox()
-        self.resolution_spin.setRange(100, 2000)
-        self.resolution_spin.setValue(800)
-        res_layout.addWidget(res_label)
-        res_layout.addWidget(self.resolution_spin)
-        layout.addLayout(res_layout)
+        layout.addWidget(res_label)
 
-        # Quality setting
-        quality_layout = QHBoxLayout()
-        quality_label = QLabel("Quality:")
-        self.quality_slider = QSlider(Qt.Orientation.Horizontal)
-        self.quality_slider.setRange(0, 100)
-        self.quality_slider.setValue(75)
-        self.quality_value = QLabel("75")
-        self.quality_slider.valueChanged.connect(
-            lambda v: self.quality_value.setText(str(v))
-        )
-        quality_layout.addWidget(quality_label)
-        quality_layout.addWidget(self.quality_slider)
-        quality_layout.addWidget(self.quality_value)
-        layout.addLayout(quality_layout)
+        # Resolution setting
+        height_layout = QHBoxLayout()
+        height_label = QLabel("Height:")
+        self.height_spin = QSpinBox()
+        self.height_spin.setRange(100, 2000)
+        self.height_spin.setValue(800)
+        height_layout.addWidget(height_label)
+        height_layout.addWidget(self.height_spin)
+        layout.addLayout(height_layout)
+
+        # Resolution setting
+        weight_layout = QHBoxLayout()
+        weight_label = QLabel("Weight:")
+        self.weight_spin = QSpinBox()
+        self.weight_spin.setRange(100, 2000)
+        self.weight_spin.setValue(800)
+        weight_layout.addWidget(weight_label)
+        weight_layout.addWidget(self.weight_spin)
+        layout.addLayout(weight_layout)
 
         group.setLayout(layout)
         parent_layout.addWidget(group)
@@ -162,6 +158,10 @@ class SettingsTab(QWidget):
     def create_processing_settings(self, parent_layout):
         group = QGroupBox("Processing Settings")
         layout = QVBoxLayout()
+
+        # Reduction group
+        reduction_layout = QVBoxLayout()
+        reduction_group = QGroupBox("Reduction")
 
         # Reduction setting for commom cases
         reduction_layout1 = QHBoxLayout()
@@ -176,7 +176,7 @@ class SettingsTab(QWidget):
         reduction_layout1.addWidget(reduction_label1)
         reduction_layout1.addWidget(self.reduction_slider1)
         reduction_layout1.addWidget(self.reduction_value1)
-        layout.addLayout(reduction_layout1)
+        reduction_layout.addLayout(reduction_layout1)
 
         # Reduction setting for binary cases
         reduction_layout2 = QHBoxLayout()
@@ -191,11 +191,14 @@ class SettingsTab(QWidget):
         reduction_layout2.addWidget(reduction_label2)
         reduction_layout2.addWidget(self.reduction_slider2)
         reduction_layout2.addWidget(self.reduction_value2)
-        layout.addLayout(reduction_layout2)
+        reduction_layout.addLayout(reduction_layout2)
 
-        # Cases for delate noise in binary images
+        reduction_group.setLayout(reduction_layout)
+        layout.addWidget(reduction_group)
+
+        # Cases for binary processing
         # Create a group box to contain the radio buttons
-        group_box = QGroupBox("Selection options for processing binary images")
+        group_box = QGroupBox("Type of binary processing")
         group_layout = QVBoxLayout()
 
         self.radio1 = QRadioButton("Opening\n(Good for removing noise)")
@@ -207,35 +210,31 @@ class SettingsTab(QWidget):
         group_box.setLayout(group_layout)
         layout.addWidget(group_box)
 
-        group.setLayout(layout)
-        parent_layout.addWidget(group)
+        # Cases for equalizations
+        # Create a group box to contain the radio buttons
+        equ_group = QGroupBox("Type of equalization")
+        equ_layout = QVBoxLayout()
 
-    def create_display_settings(self, parent_layout):
-        group = QGroupBox("Display Settings")
-        layout = QVBoxLayout()
+        self.equ_radio1 = QRadioButton("Global\n(Good for images with low contrast)")
+        equ_layout.addWidget(self.equ_radio1)
 
-        # Display options
-        self.show_grid = QCheckBox("Show Grid")
-        self.show_rulers = QCheckBox("Show Rulers")
-        self.fullscreen = QCheckBox("Fullscreen Mode")
+        self.equ_radio2 = QRadioButton("Adaptive\n(Good for images with bright parts)")
+        equ_layout.addWidget(self.equ_radio2)
 
-        layout.addWidget(self.show_grid)
-        layout.addWidget(self.show_rulers)
-        layout.addWidget(self.fullscreen)
+        equ_group.setLayout(equ_layout)
+        layout.addWidget(equ_group)
 
         group.setLayout(layout)
         parent_layout.addWidget(group)
 
     def toDict(self) -> Dict[str, Any]:
         return {
-            "resolution": self.resolution_spin.value(),
-            "quality": self.quality_slider.value(),
+            "height": self.height_spin.value(),
+            "weight": self.weight_spin.value(),
             "reduction_common": self.reduction_slider1.value(),
             "reduction_binary": self.reduction_slider2.value(),
-            "show_grid": self.show_grid.isChecked(),
-            "show_rulers": self.show_rulers.isChecked(),
-            "fullscreen": self.fullscreen.isChecked(),
             "opening": not (self.radio2.isChecked()),
+            "global_equ": not (self.equ_radio2.isChecked()),
         }
 
 
