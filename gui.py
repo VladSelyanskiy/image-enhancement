@@ -237,7 +237,7 @@ class SettingsTab(QWidget):
         layout.addWidget(equ_group)
 
         # Contrast level setting
-        contrast_group = QGroupBox("Contrast settings")
+        contrast_group = QGroupBox("Contrast")
         contrast_layout = QHBoxLayout()
         contrast_label = QLabel("Contrast enhancement level:")
         self.contrast_spin = QSpinBox()

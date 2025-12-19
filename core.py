@@ -49,6 +49,7 @@ class ImageHandler:
             cv2.imshow("median_blurred", median_blurred)
             cv2.waitKey(0)
             cv2.destroyAllWindows()
+
         return median_blurred
 
     def makeBilateralFilter(
@@ -58,19 +59,23 @@ class ImageHandler:
         sigmaSpace: int,
         show: bool = True,
     ) -> MatLike:
+
         if self.resolution:
             image = cv2.resize(
                 self.image, (self.width, self.height), interpolation=cv2.INTER_AREA
             )
         else:
             image = self.image
+
         filtered_image = cv2.bilateralFilter(
             image, d=diam, sigmaColor=sigmaColor, sigmaSpace=sigmaSpace
         )
+
         if show:
             cv2.imshow("filtered_image", filtered_image)
             cv2.waitKey(0)
             cv2.destroyAllWindows()
+
         return filtered_image
 
     def makeErode(
@@ -127,6 +132,7 @@ class ImageHandler:
             )
         else:
             image = self.image
+
         kernel = np.ones((self.reduction_binary, self.reduction_binary), np.uint8)
 
         if self.opening:
