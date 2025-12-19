@@ -8,20 +8,22 @@ class ImageHandler:
         self,
         path: str,
         height,
-        weight,
+        width,
         reduction_common,
         reduction_binary,
         opening,
         global_equ,
         contrast,
+        resolution,
     ):
         self.height = height
-        self.weight = weight
+        self.width = width
         self.reduction_common = reduction_common
         self.reduction_binary = reduction_binary
         self.opening = opening
         self.global_equ = global_equ
         self.contrast = contrast
+        self.resolution = resolution
 
         self.image_matrix: MatLike | None = cv2.imread(path)
 
@@ -32,7 +34,13 @@ class ImageHandler:
 
     def makeMedianBlur(self, show: bool = True) -> MatLike:
 
-        image = self.image
+        if self.resolution:
+            image = cv2.resize(
+                self.image, (self.width, self.height), interpolation=cv2.INTER_AREA
+            )
+        else:
+            image = self.image
+
         ksize = self.reduction_common
 
         median_blurred = cv2.medianBlur(image, ksize)
@@ -50,7 +58,12 @@ class ImageHandler:
         sigmaSpace: int,
         show: bool = True,
     ) -> MatLike:
-        image = self.image
+        if self.resolution:
+            image = cv2.resize(
+                self.image, (self.width, self.height), interpolation=cv2.INTER_AREA
+            )
+        else:
+            image = self.image
         filtered_image = cv2.bilateralFilter(
             image, d=diam, sigmaColor=sigmaColor, sigmaSpace=sigmaSpace
         )
@@ -64,7 +77,12 @@ class ImageHandler:
         self,
         show: bool = True,
     ):
-        image = self.image
+        if self.resolution:
+            image = cv2.resize(
+                self.image, (self.width, self.height), interpolation=cv2.INTER_AREA
+            )
+        else:
+            image = self.image
         kernel = np.ones((self.reduction_binary, self.reduction_binary), np.uint8)
 
         eroded_image = cv2.erode(image, kernel)
@@ -81,7 +99,12 @@ class ImageHandler:
         show: bool = True,
     ) -> MatLike:
 
-        image = self.image
+        if self.resolution:
+            image = cv2.resize(
+                self.image, (self.width, self.height), interpolation=cv2.INTER_AREA
+            )
+        else:
+            image = self.image
         kernel = np.ones((self.reduction_binary, self.reduction_binary), np.uint8)
 
         dilated_image = cv2.dilate(image, kernel)
@@ -98,7 +121,12 @@ class ImageHandler:
         show: bool = True,
     ) -> MatLike:
 
-        image = self.image
+        if self.resolution:
+            image = cv2.resize(
+                self.image, (self.width, self.height), interpolation=cv2.INTER_AREA
+            )
+        else:
+            image = self.image
         kernel = np.ones((self.reduction_binary, self.reduction_binary), np.uint8)
 
         if self.opening:
@@ -125,7 +153,12 @@ class ImageHandler:
         - grid_size: размер сетки для адаптивного выравнивания (x, y)
         """
 
-        image = self.image
+        if self.resolution:
+            image = cv2.resize(
+                self.image, (self.width, self.height), interpolation=cv2.INTER_AREA
+            )
+        else:
+            image = self.image
 
         # Создаем объект CLAHE с заданными параметрами
         clahe = cv2.createCLAHE(clipLimit=self.contrast)

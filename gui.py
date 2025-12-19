@@ -16,6 +16,7 @@ from PyQt6.QtWidgets import (
     QHBoxLayout,
     QComboBox,
     QRadioButton,
+    QCheckBox,
 )
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QPixmap
@@ -135,10 +136,17 @@ class SettingsTab(QWidget):
         res_label = QLabel("Resolution:")
         layout.addWidget(res_label)
 
+        # Use specific resolution checkbox
+        self.specific_res_checkbox = QCheckBox("Use specific resolution")
+        self.specific_res_checkbox.setChecked(False)
+        self.specific_res_checkbox.stateChanged.connect(self.toggle_resolution)
+        layout.addWidget(self.specific_res_checkbox)
+
         # Resolution setting
         height_layout = QHBoxLayout()
         height_label = QLabel("Height:")
         self.height_spin = QSpinBox()
+        self.height_spin.setEnabled(False)
         self.height_spin.setRange(100, 2000)
         self.height_spin.setValue(800)
         height_layout.addWidget(height_label)
@@ -146,14 +154,15 @@ class SettingsTab(QWidget):
         layout.addLayout(height_layout)
 
         # Resolution setting
-        weight_layout = QHBoxLayout()
-        weight_label = QLabel("Weight:")
-        self.weight_spin = QSpinBox()
-        self.weight_spin.setRange(100, 2000)
-        self.weight_spin.setValue(800)
-        weight_layout.addWidget(weight_label)
-        weight_layout.addWidget(self.weight_spin)
-        layout.addLayout(weight_layout)
+        width_layout = QHBoxLayout()
+        width_label = QLabel("Weight:")
+        self.width_spin = QSpinBox()
+        self.width_spin.setEnabled(False)
+        self.width_spin.setRange(100, 2000)
+        self.width_spin.setValue(800)
+        width_layout.addWidget(width_label)
+        width_layout.addWidget(self.width_spin)
+        layout.addLayout(width_layout)
 
         group.setLayout(layout)
         parent_layout.addWidget(group)
@@ -242,15 +251,20 @@ class SettingsTab(QWidget):
         group.setLayout(layout)
         parent_layout.addWidget(group)
 
+    def toggle_resolution(self, checked):
+        self.height_spin.setEnabled(checked)
+        self.width_spin.setEnabled(checked)
+
     def toDict(self) -> Dict[str, Any]:
         return {
             "height": self.height_spin.value(),
-            "weight": self.weight_spin.value(),
+            "width": self.width_spin.value(),
             "reduction_common": self.reduction_slider1.value(),
             "reduction_binary": self.reduction_slider2.value(),
             "opening": not (self.radio2.isChecked()),
             "global_equ": not (self.equ_radio2.isChecked()),
             "contrast": self.contrast_spin.value(),
+            "resolution": self.specific_res_checkbox.isChecked(),
         }
 
 
