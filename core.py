@@ -42,6 +42,9 @@ class ImageHandler:
             image = self.image
 
         ksize = self.reduction_common
+        # ksize must be odd
+        if ksize % 2 == 0:
+            ksize += 1
 
         median_blurred = cv2.medianBlur(image, ksize)
 
@@ -192,7 +195,15 @@ class ImageHandler:
         return clahe_image
 
     def makeEqualization(self, show: bool = True) -> MatLike:
-        image = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
+
+        if self.resolution:
+            image = cv2.resize(
+                self.image, (self.width, self.height), interpolation=cv2.INTER_AREA
+            )
+        else:
+            image = self.image
+
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
         if self.global_equ:
             equalized_image = cv2.equalizeHist(image)
